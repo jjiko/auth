@@ -1,0 +1,19 @@
+{
+  "name": "jjiko/auth",
+  "description": "OAuth services",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Joe Jiko",
+      "email": "me@joejiko.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Jiko\\Auth\\": "src/"
+    }
+  }
+}
