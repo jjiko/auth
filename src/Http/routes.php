@@ -1,15 +1,15 @@
 <?php
 Route::group(['namespace' => 'Jiko\Auth\Http\Controllers'], function () {
-  Route::get('/auth/register', ['as' => 'register_path', 'uses' => 'AuthController@getRegister']);
-  Route::get('/auth/login', ['as' => 'login_path', 'uses' => 'AuthController@getLogin']);
-  Route::get('/auth/logout', ['as' => 'logout_path', 'uses' => function () {
+  Route::get('/auth/register', ['as' => 'auth.register_path', 'uses' => 'AuthController@getRegister']);
+  Route::get('/auth/login', ['as' => 'auth.login_path', 'uses' => 'AuthController@getLogin']);
+  Route::get('/auth/logout', ['as' => 'auth.logout_path', 'uses' => function () {
     Auth::logout();
     return redirect('/');
   }]);
-  Route::get('/auth/redirect/{provider}', ['as' => 'auth_redirect', 'uses' => 'AuthController@redirectToProvider']);
-  Route::get('/auth/handler/{ }', ['as' => 'auth_handler', 'uses' => 'AuthController@handleProviderCallback']);
+  Route::get('/auth/redirect/{provider}', ['as' => 'auth.redirect', 'uses' => 'AuthController@redirectToProvider']);
+  Route::get('/auth/handler/{provider}', ['as' => 'auth.handler', 'uses' => 'AuthController@handleProviderCallback']);
 
-  Route::get('/user', ['as' => 'auth.user', 'uses' => 'AuthController@getUser']);
+  Route::get('/user', ['as' => 'auth.user_info', 'uses' => 'AuthController@getUser']);
   Route::get('once', function(){
 //    $user = \Jiko\Auth\User::where('email', '=', 'joejiko@gmail.com')->first();
 //    $user->attachRole(1);
