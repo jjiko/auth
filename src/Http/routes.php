@@ -6,8 +6,8 @@ Route::group(['namespace' => 'Jiko\Auth\Http\Controllers'], function () {
     Auth::logout();
     return redirect('/');
   }]);
-  Route::get('/auth/redirect/{provider}', ['as' => 'auth.redirect', 'uses' => 'AuthController@redirectToProvider']);
-  Route::get('/auth/handler/{provider}', ['as' => 'auth.handler', 'uses' => 'AuthController@handleProviderCallback']);
+  Route::get('/auth/redirect/{provider}', ['as' => 'auth_redirect', 'uses' => 'AuthController@redirectToProvider']);
+  Route::get('/auth/handler/{ }', ['as' => 'auth_handler', 'uses' => 'AuthController@handleProviderCallback']);
 
   Route::get('/user', ['as' => 'auth.user', 'uses' => 'AuthController@getUser']);
   Route::get('once', function(){
