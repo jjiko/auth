@@ -25,6 +25,32 @@ class AuthController extends Controller
     $this->content('auth::login');
   }
 
+  public function getLogout()
+  {
+    Auth::logout();
+    return redirect('/');
+  }
+
+  public function getOnce()
+  {
+    //    $user = \Jiko\Auth\User::where('email', '=', 'joejiko@gmail.com')->first();
+    //    $user->attachRole(1);
+    $perm = new \Jiko\Auth\Permission();
+    $perm->name = 'create-page';
+    $perm->display_name = 'Create Page';
+    $perm->description = 'Create new pages on site.';
+    $perm->save();
+
+    $editUser = new \Jiko\Auth\Permission();
+    $editUser->name = 'modify-user';
+    $editUser->display_name = 'Modify Users';
+    $editUser->description = 'modify existing users';
+    $editUser->save();
+
+    $admin = \Jiko\Auth\Role::find(1);
+    $admin->attachPermission([$perm, $editUser]);
+  }
+
   public function redirectToProvider($provider)
   {
     $providerKey = \Config::get('services.' . $provider);
@@ -52,14 +78,12 @@ class AuthController extends Controller
 
     // check if email is present
     $userCheck = User::where('email', '=', $user->email)->first();
-    if(!empty($userCheck)) {
+    if (!empty($userCheck)) {
       $socialUser = $userCheck;
-    }
-    else {
+    } else {
       $sameSocialId = OAuthUser::where('oauth_id', '=', $user->id)->where('provider', '=', $provider)->first();
 
-      if(empty($sameSocialId))
-      {
+      if (empty($sameSocialId)) {
         $newSocialUser = new User;
         $newSocialUser->email = $user->email;
         $name = explode(' ', $user->name);
@@ -73,12 +97,11 @@ class AuthController extends Controller
         $newSocialUser->OAuthUser()->save($socialData);
 
         // add role
-        $role  = Role::whereName('user')->first();
+        $role = Role::whereName('user')->first();
         $newSocialUser->assignRole($role);
 
         $socialUser = $newSocialUser;
-      }
-      else {
+      } else {
         // load this existing user
         $socialUser = $sameSocialId->user;
       }
