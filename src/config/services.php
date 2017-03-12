@@ -4,7 +4,7 @@ return [
   'google' => [
     'client_id' => env('GOOGLE_ID'),
     'client_secret' => env('GOOGLE_SECRET'),
-    'redirect' => $_SERVER['HTTP_HOST'].'/auth/handler/google'
+    'redirect' => env('APP_URL').'/auth/handler/google'
   ],
   'facebook' => [
 
