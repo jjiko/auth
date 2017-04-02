@@ -176,7 +176,7 @@ class AuthController extends Controller
         $guser = (array)$plus->people->get('me')->toSimpleObject();
         $user = (new \SocialiteProviders\Manager\OAuth2\User)->setRaw($guser)->map([
           'id' => $guser['id'], 'nickname' => array_get($guser, 'nickname'), 'name' => $guser['displayName'],
-          'email' => $guser['emails'][0]['value'], 'avatar' => array_get($guser, 'image')['url'],
+          'email' => $guser['emails'][0]->value, 'avatar' => array_get($guser, 'image')->url,
         ]);
         $token = $client->getAccessToken();
         $user->token = $token['access_token'];
