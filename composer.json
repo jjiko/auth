@@ -10,7 +10,12 @@
   ],
   "require": {
     "php": ">=5.6.4",
-    "google/recaptcha": "~1.1"
+    "google/recaptcha": "~1.1",
+    "laravel/socialite": "*",
+    "socialiteproviders/manager": "*",
+    "socialiteproviders/steam": "*",
+    "jjiko/socialiteproviders-google":"*",
+    "jjiko/socialiteproviders-twitch":"*"
   },
   "autoload": {
     "psr-4": {

@@ -11,6 +11,7 @@ class AuthServiceProvider extends ServiceProvider
 
   public function register()
   {
+    $this->app->register('Jiko\Auth\Providers\AuthEventServiceProvider');
     $this->loadRoutesFrom(__DIR__ . '/../Http/routes.php');
     $this->mergeConfigFrom(
       __DIR__ . '/../config/services.php', 'services'

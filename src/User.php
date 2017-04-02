@@ -41,4 +41,24 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
   {
     return $this->hasMany('Jiko\Auth\OAuthUser');
   }
+
+  public function TSUser()
+  {
+    return $this->hasOne('Jiko\Auth\TSUser', 'user_id');
+  }
+
+  public function getNameAttribute($value)
+  {
+    return (empty($value)) ? vsprintf('%s %s', [$this->first_name, $this->last_name]) : $value;
+  }
+
+  public function games()
+  {
+    return $this->belongsToMany('Jiko\Gaming\Models\Game', 'user_game', 'user_id', 'game_id')->withPivot('platform_id', 'status');
+  }
+
+  public function platforms()
+  {
+    return $this->belongsToMany('Jiko\Gaming\Models\Platform', 'user_game', 'user_id', 'platform_id');
+  }
 }
