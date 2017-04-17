@@ -3,12 +3,12 @@
 use Jiko\Http\Controllers\Controller;
 use Illuminate\Contracts\Auth\Guard;
 use Jiko\Auth\OAuthUser;
-use Jiko\Auth\Permission;
 use Jiko\Auth\Role;
 use Jiko\Auth\User;
 use Jiko\Auth\UserRepository;
 
 use Illuminate\Support\Facades\Input;
+use Illuminate\Http\Request;
 
 use Google_Client, Google_Service_Plus;
 use Larabros\Elogram\Client as ElogramClient;
@@ -43,24 +43,14 @@ class AuthController extends Controller
     return redirect('/');
   }
 
-  public function getOnce()
+  public function getRegister()
   {
-    //    $user = \Jiko\Auth\User::where('email', '=', 'joejiko@gmail.com')->first();
-    //    $user->attachRole(1);
-    $perm = new Permission();
-    $perm->name = 'create-page';
-    $perm->display_name = 'Create Page';
-    $perm->description = 'Create new pages on site.';
-    $perm->save();
+    return 'Register';
+  }
 
-    $editUser = new Permission();
-    $editUser->name = 'modify-user';
-    $editUser->display_name = 'Modify Users';
-    $editUser->description = 'modify existing users';
-    $editUser->save();
-
-    $admin = Role::find(1);
-    $admin->attachPermission([$perm, $editUser]);
+  public function getUser()
+  {
+    $this->content('auth::user');
   }
 
   public function redirectToProvider($provider)
@@ -85,12 +75,6 @@ class AuthController extends Controller
         $client->setApprovalPrompt('force');
         $client->setRedirectUri('http://' . Input::server('HTTP_HOST') . '/auth/handler/google');
         return redirect(filter_var($client->createAuthUrl(), FILTER_SANITIZE_URL));
-        return \Socialite::driver($provider)->scopes([
-          'profile',
-          'email',
-          'https://www.googleapis.com/auth/calendar',
-          'https://www.googleapis.com/auth/youtube'
-        ])->with(['access_type' => 'offline'])->redirect();
 
       case "facebook":
         return \Socialite::driver($provider)->scopes([
@@ -99,6 +83,15 @@ class AuthController extends Controller
           'publish_actions',
           'manage_pages',
           'publish_pages'
+        ])->redirect();
+
+      case "twitch":
+        return \Socialite::driver($provider)->scopes([
+          'channel_read',
+          'channel_editor',
+          'channel_feed_edit',
+          'user_read',
+          'user_subscriptions'
         ])->redirect();
 
       case "instagram":
@@ -115,21 +108,10 @@ class AuthController extends Controller
     return \Socialite::driver($provider)->redirect();
   }
 
-  public function getRegister()
-  {
-    return 'Register';
-  }
-
-  public function getUser()
-  {
-    $this->content('auth::user');
-  }
-
-  public function handleConnectionCallback($provider)
+  public function handleConnectionCallback(Request $request, $provider)
   {
     // assign this provider to a user instead of creating a user from them
-    $authUser = $this->auth->user();
-    $connectUser = new OAuthUser;
+    $authUser = $request->user();
 
     switch ($provider) {
       case "instagram":
@@ -141,20 +123,25 @@ class AuthController extends Controller
         );
         $resp = $client->getAccessToken(request()->input('code'));
         $values = $resp->getValues();
+        $connectUser = OAuthUser::firstOrNew([
+          'provider' => $provider,
+          'oauth_id' => $values['user']['id'],
+          'user_id' => $authUser->id
+        ]);
         $connectUser->token = $resp->getToken();
-        $connectUser->user_id = $authUser->id;
-        $connectUser->oauth_id = $values['user']['id'];
-        $connectUser->provider = $provider;
         $connectUser->RAW = json_encode($values);
         break;
 
       default:
         $user = \Socialite::driver($provider)->user();
-        $connectUser->user_id = $authUser->id;
-        $connectUser->oauth_id = $user->id;
+        $connectUser = OAuthUser::firstOrNew([
+          'provider' => $provider,
+          'oauth_id' => $user->id,
+          'user_id' => $authUser->id
+        ]);
         $connectUser->token = isset($user->token) ? $user->token : null;
         $connectUser->tokenSecret = isset($user->tokenSecret) ? $user->tokenSecret : null;
-        $connectUser->provider = $provider;
+        $connectUser->refreshToken = isset($user->refreshToken) ? $user->refreshToken : null;
         $connectUser->RAW = json_encode($user);
     }
 
@@ -197,14 +184,14 @@ class AuthController extends Controller
     if (!empty($userCheck)) {
       $socialUser = $userCheck;
 
-      // User exists but not with this provider
-      if (!$oauthuser = OAuthUser::where('user_id', $socialUser->id)->where('provider', $provider)->first()) {
-        $oauthuser = new OAuthUser;
-        $oauthuser->user_id = $socialUser->id;
-        $oauthuser->oauth_id = $user->id;
-        $oauthuser->provider = $provider;
-      }
-      // update token?
+      // Create a new user or update existing
+      $oauthuser = OAuthUser::firstOrNew([
+        'user_id' => $socialUser->id,
+        'oauth_id' => $user->id,
+        'provider' => $provider
+      ]);
+
+      // update
       $oauthuser->token = isset($user->token) ? $user->token : null;
       $oauthuser->tokenSecret = isset($user->tokenSecret) ? $user->tokenSecret : null;
       $oauthuser->refreshToken = isset($user->refreshToken) ? $user->refreshToken : null;
@@ -212,6 +199,7 @@ class AuthController extends Controller
       $oauthuser->RAW = json_encode($user);
       $oauthuser->save();
     } else {
+      // @todo idk what this is doing
       $sameSocialId = OAuthUser::where('oauth_id', '=', $user->id)->where('provider', '=', $provider)->first();
 
       if (empty($sameSocialId)) {

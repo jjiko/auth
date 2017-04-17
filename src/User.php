@@ -5,11 +5,12 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Jiko\Activity\Traits\GamingUserTrait;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
 class User extends Model implements AuthenticatableContract, CanResetPasswordContract
 {
-  use Authenticatable, CanResetPassword, EntrustUserTrait;
+  use Authenticatable, CanResetPassword, EntrustUserTrait, GamingUserTrait;
 
   protected $table = 'users';
 
@@ -45,6 +46,14 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
   public function TSUser()
   {
     return $this->hasOne('Jiko\Auth\TSUser', 'user_id');
+  }
+
+  public function getTwitchAttribute($value)
+  {
+    if ($twitchUser = $this->OAuthUser()->where('provider', 'twitch')->first()) {
+      return (new TwitchUser($twitchUser));
+    }
+    return $twitchUser;
   }
 
   public function getNameAttribute($value)

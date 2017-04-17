@@ -3,6 +3,10 @@
     @if($user->hasRole('admin'))
         <h3>Admin</h3>
     @endif
+    @if($TSUser = $user->TSUser)
+        <h3>Teamspeak</h3>
+        {{ $TSUser->nickname }}
+    @endif
     <form class="form">
         <label>Name</label><input class="form-control" type="text" readonly
                                   value="{{ $user->first_name }} {{ $user->last_name }}">
