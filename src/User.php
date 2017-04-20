@@ -43,6 +43,23 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $this->hasMany('Jiko\Auth\OAuthUser');
   }
 
+  public function getInstagramAttribute($value)
+  {
+    if ($instagramUser = $this->OAuthUser()->where('provider', 'instagram')->first()) {
+      return (new InstagramUser($instagramUser));
+    }
+
+    return $instagramUser; // null
+  }
+
+  public function getFacebookAttribute($value)
+  {
+    if ($facebookUser = $this->OAuthUser()->where('provider', 'facebook')->first()) {
+      return (new FacebookUser($facebookUser));
+    }
+    return $facebookUser;
+  }
+
   public function TSUser()
   {
     return $this->hasOne('Jiko\Auth\TSUser', 'user_id');
