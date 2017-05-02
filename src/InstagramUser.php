@@ -20,10 +20,29 @@ class InstagramUser
     $this->client->setAccessToken(new AccessToken(['access_token' => $this->user->token]));
   }
 
+  public function next($params = [])
+  {
+    $media = $this->client
+      ->users()
+      ->getMedia(
+        array_get($params, 'id', 'self'),
+        array_get($params, 'count', 20),
+        array_get($params, 'min_id', null),
+        array_get($params, 'max_id', null)
+      )->getRaw();
+    $collection = new Collection(array_get($media, 'data', []));
+
+    return ['data' => $collection, 'pagination' => array_get($media, 'pagination', [])];
+  }
+
   public function recent($params = [])
   {
-    $limit = isset($params['count']) ? $params['count'] : 8;
-    $id = isset($params['id']) ? $params['id'] : 'self';
-    return new Collection($this->client->users()->getMedia($id, $limit)->get());
+    $media = $this->client
+      ->users()
+      ->getMedia(array_get($params, 'id', 'self'), array_get($params, 'count', 20))
+      ->getRaw();
+    $collection = new Collection(array_get($media, 'data', []));
+
+    return ['data' => $collection, 'pagination' => array_get($media, 'pagination', [])];
   }
 }

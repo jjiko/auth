@@ -18,15 +18,19 @@ class FacebookUser
       'default_graph_version' => 'v2.8',
       //'default_access_token' => '{access-token}', // optional
     ]);
+    $this->token = new AccessToken($this->user->token);
+  }
+
+  public function friends()
+  {
+    $response = $this->client->get('/me/friends', $this->token);
+    return $response->getGraphEdge();
   }
 
   public function recent($params = [])
   {
     try {
-      // Get the \Facebook\GraphNodes\GraphUser object for the current user.
-      // If you provided a 'default_access_token', the '{access-token}' is optional.
-      $token = new AccessToken($this->user->token);
-      $response = $this->client->get('/me/posts?fields=message,created_time,type,status_type,attachments,likes,comments,link,picture,source', $token);
+      $response = $this->client->get('/me/posts?fields=message,created_time,type,status_type,attachments,likes,comments,link,picture,source', $this->token);
     } catch (\Facebook\Exceptions\FacebookResponseException $e) {
       // When Graph returns an error
       Log::error('Graph returned an error: ' . $e->getMessage());

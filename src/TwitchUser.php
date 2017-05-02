@@ -1,6 +1,8 @@
 <?php namespace Jiko\Auth;
 
+use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ClientException;
+
 use Jiko\Gaming\Twitch\TwitchChannel;
 
 class TwitchUser
@@ -17,15 +19,30 @@ class TwitchUser
     $this->id = $user->oauth_id;
     $this->token = $user->token;
     $this->refreshToken = $user->refreshToken;
+    $this->endpoint = 'https://api.twitch.tv/kraken';
+  }
+
+  public function status()
+  {
+    $response = $this->getHttpClient()->get(
+      "{$this->endpoint}/streams/{$this->id}", [
+        'headers' => [
+          'Accept' => 'application/vnd.twitchtv.v5+json',
+          'Client-ID' => $this->clientId
+        ]
+      ]
+    );
+
+    return json_decode($response->getBody()->getContents());
   }
 
   public function channel()
   {
     try {
       $response = $this->getHttpClient()->get(
-        'https://api.twitch.tv/kraken/channel', [
+        "{$this->endpoint}/channel", [
         'headers' => [
-          'Accept' => 'application/vnd.twitchtv.v3+json',
+          'Accept' => 'application/vnd.twitchtv.v5+json',
           'Authorization' => 'OAuth ' . $this->token,
           'Client-ID' => $this->clientId,
         ],
@@ -39,10 +56,10 @@ class TwitchUser
   public function channelById($id)
   {
     $response = $this->getHttpClient()->get(
-      'https://api.twitch.tv/kraken/channels/' . $id, [
+      "{$this->endpoint}/channels/$id", [
       'headers' => [
         'Client-ID' => $this->clientId,
-        'Accept' => 'application/vnd.twitchtv.v3+json'
+        'Accept' => 'application/vnd.twitchtv.v5+json'
       ],
     ]);
     return json_decode($response->getBody()->getContents());
@@ -54,7 +71,7 @@ class TwitchUser
       $response = $this->getHttpClient()->put(
         'https://api.twitch.tv/kraken/channels/' . $id, [
         'headers' => [
-          'Accept' => 'application/vnd.twitchtv.v3+json',
+          'Accept' => 'application/vnd.twitchtv.v5+json',
           'Authorization' => 'OAuth ' . $this->token,
           'Client-ID' => $this->clientId,
         ],
@@ -73,6 +90,6 @@ class TwitchUser
 
   public function getHttpClient()
   {
-    return new \GuzzleHttp\Client();
+    return new HttpClient();
   }
 }

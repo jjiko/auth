@@ -18,6 +18,8 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
   protected $hidden = ['password', 'remember_token'];
 
+  protected $with = ['roles'];
+
   public static $rules = [
     'first_name' => 'required',
     'last_name' => 'required',
@@ -80,7 +82,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
   public function games()
   {
-    return $this->belongsToMany('Jiko\Gaming\Models\Game', 'user_game', 'user_id', 'game_id')->withPivot('platform_id', 'status');
+    return $this->belongsToMany('Jiko\Gaming\Models\Game', 'user_game', 'user_id', 'game_id')->withPivot('platform_id', 'status', 'live');
   }
 
   public function platforms()
