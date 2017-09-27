@@ -158,12 +158,15 @@ class AuthController extends Controller
         $client = new Google_Client();
         $client->setAuthConfig(base_path('google_client_secrets.json'));
         $client->setRedirectUri('http://' . Input::server('HTTP_HOST') . '/auth/handler/google');
-        $client->authenticate(Input::get('code'));
+        $client->fetchAccessTokenWithAuthCode(Input::get('code'));
         $plus = new Google_Service_Plus($client);
         $guser = (array)$plus->people->get('me')->toSimpleObject();
         $user = (new \SocialiteProviders\Manager\OAuth2\User)->setRaw($guser)->map([
-          'id' => $guser['id'], 'nickname' => array_get($guser, 'nickname'), 'name' => $guser['displayName'],
-          'email' => $guser['emails'][0]->value, 'avatar' => array_get($guser, 'image')->url,
+          'id' => $guser['id'],
+          'nickname' => array_get($guser, 'nickname'),
+          'name' => $guser['displayName'],
+          'email' => $guser['emails'][0]['value'],
+          'avatar' => array_get($guser, 'image.url'),
         ]);
         $token = $client->getAccessToken();
         $user->token = $token['access_token'];

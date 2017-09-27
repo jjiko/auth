@@ -20,6 +20,11 @@ class InstagramUser
     $this->client->setAccessToken(new AccessToken(['access_token' => $this->user->token]));
   }
 
+  public function getClient()
+  {
+     return $this->client;
+  }
+
   public function next($params = [])
   {
     $media = $this->client
@@ -44,5 +49,22 @@ class InstagramUser
     $collection = new Collection(array_get($media, 'data', []));
 
     return ['data' => $collection, 'pagination' => array_get($media, 'pagination', [])];
+  }
+
+  public function relationship($type)
+  {
+
+  }
+
+  public function follows()
+  {
+    $resp = $this->client->users()->follows();
+    return $resp->get();
+  }
+
+  public function followedBy()
+  {
+    $resp = $this->client->users()->followedBy();
+    return $resp->get();
   }
 }

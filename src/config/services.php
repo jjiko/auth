@@ -32,16 +32,15 @@ return [
     'client_id' => env('INSTAGRAM_CLIENT_ID'),
     'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
     'redirect' => env('APP_URL') . '/auth/connection/handler/instagram',
-    'scopes' => [
-      'basic',
-      'follower_list',
-      'likes',
-      'comments',
-      'relationships'
-    ],
+    'scopes' => ['scope' => 'basic follower_list likes comments relationships'],
   ],
   'github' => [
 
+  ],
+  'spotify' => [
+    'client_id' => env('SPOTIFY_KEY'),
+    'client_secret' => env('SPOTIFY_SECRET'),
+    'redirect' => env('APP_URL') . '/auth/connection/handler/spotify',
   ],
   'steam' => [
     'client_id' => null,

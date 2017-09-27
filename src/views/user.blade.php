@@ -65,6 +65,16 @@
             @endif
         </div>
         <div class="col-md-3">
+            <h2>Spotify</h2>
+            @if($spotifyUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'spotify')->first())
+                <p>Connected on {{ $spotifyUser->created_at }}</p>
+            @else
+                <a href="{{ route('auth.connect.redirect', ['provider' => 'spotify']) }}"
+                   class="btn btn-lg btn-primary"
+                   type="submit">connect</a>
+            @endif
+        </div>
+        <div class="col-md-3">
             <h2>Steam</h2>
             @if($steamUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'steam')->first())
                 <p>Connected on {{ $steamUser->created_at }}</p>

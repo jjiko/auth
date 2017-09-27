@@ -62,6 +62,15 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $facebookUser;
   }
 
+  public function getMultistreamerAttribute()
+  {
+    if ($msUser = $this->OAuthUser()->where('provider', 'multistreamer')->first()) {
+      return (new MSUser($msUser->toArray()));
+    }
+
+    return $msUser;
+  }
+
   public function TSUser()
   {
     return $this->hasOne('Jiko\Auth\TSUser', 'user_id');
@@ -73,6 +82,14 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
       return (new TwitchUser($twitchUser));
     }
     return $twitchUser;
+  }
+
+  public function getSpotifyAttribute($value)
+  {
+    if ($spotifyUser = $this->OAuthUser()->where('provider', 'spotify')->first()) {
+      return (new SpotifyUser($spotifyUser));
+    }
+    return $spotifyUser;
   }
 
   public function getNameAttribute($value)
