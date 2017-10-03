@@ -29,7 +29,7 @@
             @if($fbUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'facebook')->first())
                 <p>Connected on {{ $fbUser->created_at }}</p>
             @else
-                <a href="{{ route('auth.redirect', ['provider' => 'google']) }}"
+                <a href="{{ route('auth.redirect', ['provider' => 'facebook']) }}"
                    class="btn btn-lg btn-primary"
                    type="submit">connect</a>
             @endif
