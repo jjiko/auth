@@ -57,4 +57,12 @@ return [
     'client_secret' => env('TWITTER_API_SECRET'),
     'redirect' => env('APP_URL') . '/auth/connection/handler/twitter'
   ],
+  'blueiris' => [
+    'redirect' => env('APP_URL') . '/auth/connection/handler/blueiris'
+  ],
+  'discord' => [
+    'client_id' => env('DISCORD_KEY'),
+    'client_secret' => env('DISCORD_SECRET'),
+    'redirect' => env('APP_URL') . '/auth/connection/handler/discord'
+  ]
 ];

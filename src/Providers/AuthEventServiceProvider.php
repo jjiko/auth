@@ -14,9 +14,10 @@ class AuthEventServiceProvider extends ServiceProvider
   protected $listen = [
     'Illuminate\Auth\Events\Login' => ['Jiko\Auth\Http\Controllers\AuthController@touch'],
     \SocialiteProviders\Manager\SocialiteWasCalled::class => [
-      'SocialiteProviders\Steam\SteamExtendSocialite@handle',
+      'SocialiteProviders\Discord\DiscordExtendSocialite@handle',
       'SocialiteProviders\Twitch\TwitchExtendSocialite@handle',
-      'SocialiteProviders\Spotify\SpotifyExtendSocialite@handle'
+      'SocialiteProviders\Spotify\SpotifyExtendSocialite@handle',
+      'SocialiteProviders\Steam\SteamExtendSocialite@handle'
     ],
   ];
 }

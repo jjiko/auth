@@ -76,6 +76,15 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $this->hasOne('Jiko\Auth\TSUser', 'user_id');
   }
 
+  public function getTwitterAttribute($value)
+  {
+    if ($twitterUser = $this->OAuthUser()->where('provider', 'twitter')->first()) {
+      return (new TwitterUser($twitterUser));
+    }
+
+    return $twitterUser;
+  }
+
   public function getTwitchAttribute($value)
   {
     if ($twitchUser = $this->OAuthUser()->where('provider', 'twitch')->first()) {
@@ -84,12 +93,28 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $twitchUser;
   }
 
+  public function getBlueirisAttribute($value)
+  {
+    if ($blueirisUser = $this->OAuthUser()->where('provider', 'blueiris')->first()) {
+      return (new BIUser($blueirisUser));
+    }
+  }
+
   public function getSpotifyAttribute($value)
   {
     if ($spotifyUser = $this->OAuthUser()->where('provider', 'spotify')->first()) {
       return (new SpotifyUser($spotifyUser));
     }
     return $spotifyUser;
+  }
+
+  public function getPlaystationAttribute($value)
+  {
+    if ($playstationUser = $this->OAuthUser()->where('provider', 'playstation')->first()) {
+      return (new PSNUser($playstationUser));
+    }
+
+    return $playstationUser;
   }
 
   public function getNameAttribute($value)

@@ -1,11 +1,9 @@
 <?php namespace Jiko\Auth\Http\Controllers;
 
 use Jiko\Http\Controllers\Controller;
-use Illuminate\Contracts\Auth\Guard;
 use Jiko\Auth\OAuthUser;
 use Jiko\Auth\Role;
 use Jiko\Auth\User;
-use Jiko\Auth\UserRepository;
 
 use Illuminate\Support\Facades\Input;
 use Illuminate\Http\Request;
@@ -15,15 +13,9 @@ use Larabros\Elogram\Client as ElogramClient;
 
 class AuthController extends Controller
 {
-  protected $auth;
-
-  protected $userRepository;
-
-  public function __construct(Guard $auth, UserRepository $userRepository)
+  public function __construct()
   {
     parent::__construct();
-    $this->auth = $auth;
-    $this->userRepository = $userRepository;
   }
 
   public function touch()
@@ -39,7 +31,7 @@ class AuthController extends Controller
 
   public function getLogout()
   {
-    \Auth::logout();
+    auth()->logout();
     return redirect('/');
   }
 
@@ -61,6 +53,9 @@ class AuthController extends Controller
     }
 
     switch ($provider) {
+      case "blueiris":
+        return redirect()->route('home::setup');
+
       case "google":
         $client = new Google_Client();
         $client->setAuthConfig(base_path('/google_client_secrets.json'));
@@ -114,6 +109,16 @@ class AuthController extends Controller
     $authUser = $request->user();
 
     switch ($provider) {
+      case "blueiris":
+        $connectUser = OAuthUser::firstOrNew([
+          'provider' => $provider,
+          'oauth_id' => request()->input('system'),
+          'user_id' => $authUser->id
+        ]);
+        $connectUser->token = request()->input('session');
+        $connectUser->RAW = json_encode(request()->input());
+        break;
+
       case "instagram":
         $client = new ElogramClient(
           config('services.instagram.client_id'),
@@ -165,7 +170,7 @@ class AuthController extends Controller
           'id' => $guser['id'],
           'nickname' => array_get($guser, 'nickname'),
           'name' => $guser['displayName'],
-          'email' => $guser['emails'][0]['value'],
+          'email' => $guser['emails'][0]->value,
           'avatar' => array_get($guser, 'image.url'),
         ]);
         $token = $client->getAccessToken();
@@ -239,7 +244,7 @@ class AuthController extends Controller
       }
     }
 
-    $this->auth->login($socialUser, true);
+    auth()->login($socialUser, true); // login and remember
 
     return redirect('/');
   }

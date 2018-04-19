@@ -15,7 +15,7 @@ class FacebookUser
     $this->client = new \Facebook\Facebook([
       'app_id' => env('FACEBOOK_APP_ID'),
       'app_secret' => env('FACEBOOK_APP_SECRET'),
-      'default_graph_version' => 'v2.8',
+      'default_graph_version' => 'v2.11',
       //'default_access_token' => '{access-token}', // optional
     ]);
     $this->token = new AccessToken($this->user->token);

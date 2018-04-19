@@ -86,6 +86,23 @@
                             alt="Steam"></a>
             @endif
         </div>
+
+        <div class="col-md-3">
+            <h2>BlueIris</h2>
+            @if($BIUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'blueiris')->first())
+                <p>Connected on {{ $BIUser->created_at }}</p>
+            @else
+                <a href="{{ route('auth.connect.redirect', ['provider' => 'blueiris']) }}"
+                   class="btn btn-lg btn-primary"
+                   type="submit">configure</a>
+            @endif
+        </div>
+        @if($psnUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'playstation')->first())
+            <div class="col-md-3">
+                <h2>Playstation Network</h2>
+                <p>Connected on {{ $psnUser->created_at }}</p>
+            </div>
+        @endif
     </div>
 @else
     @include('auth::login')
