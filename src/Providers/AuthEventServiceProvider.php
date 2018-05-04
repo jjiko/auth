@@ -3,6 +3,7 @@
 namespace Jiko\Auth\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 
 class AuthEventServiceProvider extends ServiceProvider
 {
@@ -13,8 +14,10 @@ class AuthEventServiceProvider extends ServiceProvider
    */
   protected $listen = [
     'Illuminate\Auth\Events\Login' => ['Jiko\Auth\Http\Controllers\AuthController@touch'],
-    \SocialiteProviders\Manager\SocialiteWasCalled::class => [
+
+    SocialiteWasCalled::class => [
       'SocialiteProviders\Discord\DiscordExtendSocialite@handle',
+      'SocialiteProviders\Nest\NestExtendSocialite@handle',
       'SocialiteProviders\Twitch\TwitchExtendSocialite@handle',
       'SocialiteProviders\Spotify\SpotifyExtendSocialite@handle',
       'SocialiteProviders\Steam\SteamExtendSocialite@handle'

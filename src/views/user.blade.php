@@ -97,6 +97,16 @@
                    type="submit">configure</a>
             @endif
         </div>
+
+        <div class="col-md-3">
+            <h2>Nest</h2>
+            @if($nestUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'nest')->first())
+                <p>Connected on {{ $nestUser->created_at }}</p>
+            @else
+                <a href="{{ route('auth.connect.redirect', ['provider' => 'nest']) }}" class="btn btn-lg btn-primary" type="submit">connect</a>
+            @endif
+        </div>
+
         @if($psnUser = \Jiko\Auth\OAuthUser::where('user_id', $user->id)->where('provider', 'playstation')->first())
             <div class="col-md-3">
                 <h2>Playstation Network</h2>

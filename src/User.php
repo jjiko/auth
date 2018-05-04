@@ -1,4 +1,6 @@
-<?php namespace Jiko\Auth;
+<?php
+
+namespace Jiko\Auth;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -6,11 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Jiko\Activity\Traits\GamingUserTrait;
+use Jiko\Home\Models\Home;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
 class User extends Model implements AuthenticatableContract, CanResetPasswordContract
 {
   use Authenticatable, CanResetPassword, EntrustUserTrait, GamingUserTrait;
+
+  protected $connection = 'auth';
 
   protected $table = 'users';
 
@@ -85,6 +90,13 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $twitterUser;
   }
 
+  public function getNestAttribute($value)
+  {
+    if ($nestUser = $this->OAuthUser()->where('provider', 'nest')->first()) {
+      return (new NestUser($nestUser));
+    }
+  }
+
   public function getTwitchAttribute($value)
   {
     if ($twitchUser = $this->OAuthUser()->where('provider', 'twitch')->first()) {
@@ -93,11 +105,30 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $twitchUser;
   }
 
+  public function getEightAttribute()
+  {
+    if ($eightUser = $this->OAuthUser()->where('provider', 'eight')->first()) {
+      return (new EightUser($eightUser));
+    }
+
+    return $eightUser;
+  }
+
   public function getBlueirisAttribute($value)
   {
     if ($blueirisUser = $this->OAuthUser()->where('provider', 'blueiris')->first()) {
       return (new BIUser($blueirisUser));
     }
+    return $blueirisUser;
+  }
+
+  public function getHomeAttribute()
+  {
+    if ($home = Home::where('owner_id', $this->id)->first()) {
+      return $this->OAuthUser()->where('provider', $home->type)->first();
+    }
+
+    return $home;
   }
 
   public function getSpotifyAttribute($value)

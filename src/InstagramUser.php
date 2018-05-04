@@ -1,4 +1,5 @@
-<?php namespace Jiko\Auth;
+<?php
+namespace Jiko\Auth;
 
 use Larabros\Elogram\Client as InstagramClient;
 use League\OAuth2\Client\Token\AccessToken;

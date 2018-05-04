@@ -1,15 +1,19 @@
 <?php namespace Jiko\Auth\Http\Controllers;
 
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\GuzzleException;
 use Jiko\Http\Controllers\Controller;
 use Jiko\Auth\OAuthUser;
 use Jiko\Auth\Role;
 use Jiko\Auth\User;
 
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Http\Request;
 
 use Google_Client, Google_Service_Plus;
 use Larabros\Elogram\Client as ElogramClient;
+use Stripe\OAuth;
 
 class AuthController extends Controller
 {
@@ -56,20 +60,31 @@ class AuthController extends Controller
       case "blueiris":
         return redirect()->route('home::setup');
 
+      case "eight":
+        return redirect()->route('eight::setup');
+
+      case "nest":
+        return \Socialite::driver($provider)->redirect();
+
       case "google":
-        $client = new Google_Client();
-        $client->setAuthConfig(base_path('/google_client_secrets.json'));
-        $client->setAccessType('offline');
-        $client->setIncludeGrantedScopes(true);
-        $client->setScopes([
-          'profile',
-          'email',
-          'https://www.googleapis.com/auth/calendar',
-          'https://www.googleapis.com/auth/youtube'
-        ]);
-        $client->setApprovalPrompt('force');
-        $client->setRedirectUri('http://' . Input::server('HTTP_HOST') . '/auth/handler/google');
-        return redirect(filter_var($client->createAuthUrl(), FILTER_SANITIZE_URL));
+        try {
+          $client = new Google_Client();
+          $client->setAuthConfig(base_path('/google_client_secrets.json'));
+          $client->setAccessType('offline');
+          $client->setIncludeGrantedScopes(true);
+          $client->setScopes([
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/calendar',
+            'https://www.googleapis.com/auth/youtube'
+          ]);
+          $client->setApprovalPrompt('force');
+          $client->setRedirectUri('http://' . Input::server('HTTP_HOST') . '/auth/handler/google');
+          return redirect(filter_var($client->createAuthUrl(), FILTER_SANITIZE_URL));
+        } catch (\Google_Exception $e) {
+          dd($e->getMessage());
+        }
+        break;
 
       case "facebook":
         return \Socialite::driver($provider)->scopes([
@@ -119,6 +134,58 @@ class AuthController extends Controller
         $connectUser->RAW = json_encode(request()->input());
         break;
 
+      case "eight":
+        $headers = [
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'connection' => 'keep-alive',
+          'user-agent' => 'okhttp/3.6.0',
+          'accept' => '*/*',
+          'authority' => 'app-api.8slp.net'
+        ];
+        $client = new HttpClient();
+        try {
+          $resp = $client->request('POST', 'https://app-api.8slp.net/v1/login', [
+            'headers' => $headers,
+            'form_params' => [
+              'email' => request()->input('eight_email'),
+              'password' => request()->input('eight_password')
+            ]
+          ]);
+          $data = json_decode($resp->getBody()->getContents());
+        } catch (GuzzleException $e) {
+          dd($e->getMessage());
+        }
+
+        if(!property_exists($data, "session")) {
+          return ['status' => 400, 'message' => 'No session data in response', $data];
+        }
+
+        $connectUser = OAuthUser::firstOrNew([
+          'provider' => 'eight',
+          'user_id' => $authUser->id
+        ]);
+        $connectUser->token = $data->session->token;
+        $connectUser->oauth_id = $data->session->userId;
+        $connectUser->expiresIn = $data->session->expirationDate;
+        $connectUser->RAW = json_encode([
+          'email' => request()->input('email'),
+          'password' => Crypt::encryptString(request()->input('password')),
+          'session' => $data->session
+        ]);
+        break;
+
+      case "nest":
+        $user = \Socialite::driver($provider)->user();
+        $connectUser = OAuthUser::firstOrNew([
+          'provider' => $provider,
+          'oauth_id' => $user->metadata['user_id'],
+          'user_id' => $authUser->id
+        ]);
+
+        $connectUser->token = $user->metadata['access_token'];
+        $connectUser->RAW = json_encode($user);
+        break;
+
       case "instagram":
         $client = new ElogramClient(
           config('services.instagram.client_id'),
@@ -160,23 +227,27 @@ class AuthController extends Controller
     switch ($provider) {
       case "google":
 
-        $client = new Google_Client();
-        $client->setAuthConfig(base_path('google_client_secrets.json'));
-        $client->setRedirectUri('http://' . Input::server('HTTP_HOST') . '/auth/handler/google');
-        $client->fetchAccessTokenWithAuthCode(Input::get('code'));
-        $plus = new Google_Service_Plus($client);
-        $guser = (array)$plus->people->get('me')->toSimpleObject();
-        $user = (new \SocialiteProviders\Manager\OAuth2\User)->setRaw($guser)->map([
-          'id' => $guser['id'],
-          'nickname' => array_get($guser, 'nickname'),
-          'name' => $guser['displayName'],
-          'email' => $guser['emails'][0]->value,
-          'avatar' => array_get($guser, 'image.url'),
-        ]);
-        $token = $client->getAccessToken();
-        $user->token = $token['access_token'];
-        $user->refreshToken = $client->getRefreshToken();
-        $user->expiresIn = $token['expires_in'];
+        try {
+          $client = new Google_Client();
+          $client->setAuthConfig(base_path('google_client_secrets.json'));
+          $client->setRedirectUri('http://' . Input::server('HTTP_HOST') . '/auth/handler/google');
+          $client->fetchAccessTokenWithAuthCode(Input::get('code'));
+          $plus = new Google_Service_Plus($client);
+          $guser = (array)$plus->people->get('me')->toSimpleObject();
+          $user = (new \SocialiteProviders\Manager\OAuth2\User)->setRaw($guser)->map([
+            'id' => $guser['id'],
+            'nickname' => array_get($guser, 'nickname'),
+            'name' => $guser['displayName'],
+            'email' => $guser['emails'][0]->value,
+            'avatar' => array_get($guser, 'image.url'),
+          ]);
+          $token = $client->getAccessToken();
+          $user->token = $token['access_token'];
+          $user->refreshToken = $client->getRefreshToken();
+          $user->expiresIn = $token['expires_in'];
+        } catch (\Google_Exception $e) {
+          dd($e->getMessage());
+        }
         break;
 
       default:

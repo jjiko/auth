@@ -17,5 +17,13 @@
     "psr-4": {
       "Jiko\\Auth\\": "src/"
     }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Jiko\\Auth\\Providers\\AuthServiceProvider",
+        "Jiko\\Auth\\Providers\\AuthEventServiceProvider"
+      ]
+    }
   }
 }

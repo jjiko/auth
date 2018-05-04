@@ -1,4 +1,5 @@
-<?php namespace Jiko\Auth;
+<?php
+namespace Jiko\Auth;
 
 class UserMailer extends Mailer
 {

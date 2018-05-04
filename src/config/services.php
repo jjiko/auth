@@ -60,6 +60,11 @@ return [
   'blueiris' => [
     'redirect' => env('APP_URL') . '/auth/connection/handler/blueiris'
   ],
+  'nest' => [
+    'client_id' => env('NEST_KEY'),
+    'client_secret' => env('NEST_SECRET'),
+    'redirect' => env('APP_URL') . '/auth/connection/handler/nest'
+  ],
   'discord' => [
     'client_id' => env('DISCORD_KEY'),
     'client_secret' => env('DISCORD_SECRET'),

@@ -1,4 +1,5 @@
-<?php namespace Jiko\Auth;
+<?php
+namespace Jiko\Auth;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ClientException;
