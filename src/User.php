@@ -59,7 +59,16 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     return $instagramUser; // null
   }
 
-  public function getFacebookAttribute($value)
+  public function getGoogleAttribute()
+  {
+    if ($googleUser = $this->OAuthUser()->where('provider', 'google')->first()) {
+      return (new GoogleUser($googleUser));
+    }
+
+    return $googleUser;
+  }
+
+  public function getFacebookAttribute()
   {
     if ($facebookUser = $this->OAuthUser()->where('provider', 'facebook')->first()) {
       return (new FacebookUser($facebookUser));
@@ -83,7 +92,11 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
   public function getTwitterAttribute($value)
   {
-    if ($twitterUser = $this->OAuthUser()->where('provider', 'twitter')->first()) {
+    $twitterUser = cache()->rememberForever($this->getModel() . '_By_Id_' . $this->id . '_Twitter', function () {
+      return $this->OAuthUser()->where('provider', 'twitter')->first();
+    });
+
+    if ($twitterUser) {
       return (new TwitterUser($twitterUser));
     }
 
@@ -141,7 +154,10 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
   public function getPlaystationAttribute($value)
   {
-    if ($playstationUser = $this->OAuthUser()->where('provider', 'playstation')->first()) {
+    $playstationUser = cache()->rememberForever($this->getModel() . '_By_Id_' . $this->id . '_Playstation', function () {
+      return $this->OAuthUser()->where('provider', 'playstation')->first();
+    });
+    if ($playstationUser) {
       return (new PSNUser($playstationUser));
     }
 
@@ -161,5 +177,11 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
   public function platforms()
   {
     return $this->belongsToMany('Jiko\Gaming\Models\Platform', 'user_game', 'user_id', 'platform_id');
+  }
+
+  public function clearCache($model)
+  {
+    cache()->forget(get_class($model) . '_By_Id_' . $model->id);
+    cache()->forget(get_class($model) . '_By_Id_Token_' . $model->id);
   }
 }

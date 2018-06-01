@@ -22,7 +22,8 @@
     "laravel": {
       "providers": [
         "Jiko\\Auth\\Providers\\AuthServiceProvider",
-        "Jiko\\Auth\\Providers\\AuthEventServiceProvider"
+        "Jiko\\Auth\\Providers\\AuthEventServiceProvider",
+        "Jiko\\Auth\\Providers\\CacheableEloquentUserProvider"
       ]
     }
   }

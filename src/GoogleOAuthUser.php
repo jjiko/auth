@@ -4,10 +4,16 @@ use Google_Client;
 
 class GoogleOAuthUser extends OAuthUser
 {
+  protected $client;
+
   function __construct(array $attributes = [])
   {
-    $this->client = new Google_Client();
-    $this->client->setAuthConfig(base_path('google_client_secrets.json'));
+    try {
+      $this->client = new Google_Client();
+      $this->client->setAuthConfig(base_path('google_client_secrets.json'));
+    } catch (\Google_Exception $e) {
+      logger($e->getMessage());
+    }
 
     parent::__construct($attributes);
   }

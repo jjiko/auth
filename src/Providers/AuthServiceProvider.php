@@ -14,17 +14,31 @@ class AuthServiceProvider extends ServiceProvider
         MetaCommand::class
       ]);
     }
+
+    $this->app['auth']->provider('cacheableEloquent',
+      function ($app, $config) {
+        $config['model']::updated(function ($model) {
+          CacheableEloquentUserProvider::clearCache($model);
+        });
+        return new CacheableEloquentUserProvider($app['hash'], $config['model']);
+      }
+    );
   }
 
   public function register()
   {
-    $this->app->register('Jiko\Auth\Providers\AuthEventServiceProvider');
-    $this->loadRoutesFrom(__DIR__ . '/../Http/routes.php');
+    // Update config
     $this->mergeConfigFrom(
       __DIR__ . '/../config/services.php', 'services'
     );
     $this->mergeConfigFrom(
-      __DIR__ . '/../config/database.php', 'database.connections'
+      __DIR__ . '/../config/auth.providers.users.php', 'auth.providers.users'
     );
+    $this->mergeConfigFrom(
+      __DIR__ . '/../config/database.connections.php', 'database.connections'
+    );
+
+    // Routes
+    $this->loadRoutesFrom(__DIR__ . '/../Http/routes.php');
   }
 }

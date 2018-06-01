@@ -6,8 +6,8 @@ class OAuthUser extends Model
 {
   protected $table = 'oauth_users';
   protected $guarded = ['id'];
-
   protected $connection = "auth";
+  protected $refreshToken;
 
   public function user()
   {
